@@ -35,8 +35,8 @@ func main() {
 		}
 	}
 
-	fmt.Println(fmt.Sprintf("Final floor: %d", floor))
-	fmt.Println(fmt.Sprintf("Basement floor instruction position: %d", firstbasementpos))
+	fmt.Printf("Final floor: %d\n", floor)
+	fmt.Printf("Basement floor instruction position: %d\n", firstbasementpos)
 }
 
 func check(e error) {
