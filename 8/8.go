@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"text/scanner"
 )
 
 func main() {
@@ -14,55 +15,38 @@ func main() {
 	file, err := os.Open(os.Args[1])
 	check(err)
 
-	scanner := bufio.NewScanner(file)
-	code_chars := 0
+	var s scanner.Scanner
+	s.Init(bufio.NewReader(file))
+	s.Mode = scanner.ScanChars
+	tok := s.Next()
 	string_chars := 0
-	escape := false
-	hex_escape := false
-	seen_one_hex := false
-	for scanner.Scan() {
-		line := scanner.Text()
-		for _, c := range line {
-			switch c {
-			case ' ', '\t', '\n':
-			default:
-				code_chars++
-			}
-
-			switch c {
-			case '\\':
-				if escape {
-					string_chars++
-					escape = false
-				} else {
-					escape = true
-				}
-			case '"':
-				if escape {
-					escape = false
-					string_chars++
-				}
+	code_chars := 0
+	for tok != scanner.EOF {
+		if tok == '\n' {
+			tok = s.Next()
+			continue
+		}
+		code_chars++
+		switch tok {
+		case '\\':
+			escape_tok := s.Next()
+			code_chars++
+			switch escape_tok {
+			case '\\', '"':
+				string_chars++
 			case 'x':
-				if escape {
-					hex_escape = true
-					escape = false
-				} else {
-					string_chars++
-				}
-			case 'a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				if hex_escape {
-					seen_one_hex = true
-					hex_escape = false
-				} else if seen_one_hex {
-					string_chars++
-					seen_one_hex = false
-				} else {
-					string_chars++
-				}
-			default:
+				_ = s.Next()
+				code_chars++
+				_ = s.Next()
+				code_chars++
 				string_chars++
 			}
+		case '"':
+			break
+		default:
+			string_chars++
 		}
+		tok = s.Next()
 	}
 
 	fmt.Printf("Code characters: %d\n", code_chars)
